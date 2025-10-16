@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Financial Planning Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dashboard-header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .dashboard-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .dashboard-header p {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .metric-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .portfolio-allocation {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .allocation-item {
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+        }
+
+        .allocation-percentage {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+
+        .goal-timeline {
+            margin: 20px 0;
+        }
+
+        .goal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .goal-progress {
+            width: 100%;
+            height: 8px;
+            background: #e1e8ed;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .goal-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            transition: width 0.3s ease;
+        }
+
+        .risk-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .risk-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .risk-level {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .risk-low { color: #27ae60; }
+        .risk-medium { color: #f39c12; }
+        .risk-high { color: #e74c3c; }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>🤖 AI Financial Planning Dashboard</h1>
+            <p>Comprehensive Portfolio Management & Investment Analytics</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Portfolio Overview -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">Portfolio Overview</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="portfolioChart"></canvas>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="totalValue">₹0L</div>
+                        <div class="metric-label">Total Portfolio Value</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="totalReturn">0%</div>
+                        <div class="metric-label">Total Returns</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="xirr">0%</div>
+                        <div class="metric-label">XIRR</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Allocation -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🥧</div>
+                    <div class="card-title">Asset Allocation</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="allocationChart"></canvas>
+                </div>
+                <div class="portfolio-allocation" id="allocationList">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Financial Health -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">💚</div>
+                    <div class="card-title">Financial Health</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="savingsRate">0%</div>
+                        <div class="metric-label">Savings Rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="expenseRatio">0%</div>
+                        <div class="metric-label">Expense Ratio</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="debtRatio">0%</div>
+                        <div class="metric-label">Debt Ratio</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="emergencyFund">0</div>
+                        <div class="metric-label">Emergency Fund (Months)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goal Tracking -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🎯</div>
+                    <div class="card-title">Goal Tracking</div>
+                </div>
+                <div class="goal-timeline" id="goalTimeline">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Risk Analysis -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-title">Risk Analysis</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="riskChart"></canvas>
+                </div>
+                <div class="risk-analysis" id="riskAnalysis">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Investment Recommendations -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">💡</div>
+                    <div class="card-title">AI Recommendations</div>
+                </div>
+                <div id="recommendations">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div class="action-buttons">
+                    <button class="btn" onclick="refreshRecommendations()">Refresh Recommendations</button>
+                    <button class="btn btn-secondary" onclick="exportReport()">Export Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - in real app, this would come from API
+        const userData = {
+            income: 8.5,
+            expenses: 6.0,
+            savings: 2.0,
+            goals: 50.0,
+            age: 30,
+            risk_tolerance: 'medium',
+            investment_experience: 'intermediate'
+        };
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+        });
+
+        function initializeDashboard() {
+            updatePortfolioOverview();
+            updateAssetAllocation();
+            updateFinancialHealth();
+            updateGoalTracking();
+            updateRiskAnalysis();
+            updateRecommendations();
+        }
+
+        function updatePortfolioOverview() {
+            // Portfolio value calculation
+            const totalValue = userData.savings * 12; // Assuming monthly savings
+            const totalReturn = 12.5; // Sample return percentage
+            const xirr = 11.8; // Sample XIRR
+
+            document.getElementById('totalValue').textContent = `₹${totalValue.toFixed(1)}L`;
+            document.getElementById('totalReturn').textContent = `${totalReturn}%`;
+            document.getElementById('xirr').textContent = `${xirr}%`;
+
+            // Portfolio growth chart
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Portfolio Value (₹L)',
+                        data: [15, 16.2, 17.1, 18.5, 19.2, 20.1],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateAssetAllocation() {
+            // Asset allocation data
+            const allocation = [
+                { name: 'Equity', percentage: 60, color: '#3498db' },
+                { name: 'Debt', percentage: 25, color: '#2ecc71' },
+                { name: 'Gold', percentage: 10, color: '#f39c12' },
+                { name: 'Real Estate', percentage: 5, color: '#e74c3c' }
+            ];
+
+            // Pie chart
+            const ctx = document.getElementById('allocationChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: allocation.map(item => item.name),
+                    datasets: [{
+                        data: allocation.map(item => item.percentage),
+                        backgroundColor: allocation.map(item => item.color),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Allocation list
+            const allocationList = document.getElementById('allocationList');
+            allocationList.innerHTML = allocation.map(item => 
+                `<div class="allocation-item" style="background: ${item.color}">
+                    ${item.name}
+                    <span class="allocation-percentage">${item.percentage}%</span>
+                </div>`
+            ).join('');
+        }
+
+        function updateFinancialHealth() {
+            const savingsRate = (userData.savings / userData.income) * 100;
+            const expenseRatio = (userData.expenses / userData.income) * 100;
+            const debtRatio = 15; // Sample debt ratio
+            const emergencyFund = userData.savings / (userData.expenses / 12);
+
+            document.getElementById('savingsRate').textContent = `${savingsRate.toFixed(1)}%`;
+            document.getElementById('expenseRatio').textContent = `${expenseRatio.toFixed(1)}%`;
+            document.getElementById('debtRatio').textContent = `${debtRatio}%`;
+            document.getElementById('emergencyFund').textContent = `${emergencyFund.toFixed(1)}`;
+        }
+
+        function updateGoalTracking() {
+            const goals = [
+                { name: 'Emergency Fund', target: 6, current: 4.5, timeline: '6 months' },
+                { name: 'House Down Payment', target: 50, current: 15, timeline: '3 years' },
+                { name: 'Retirement', target: 200, current: 25, timeline: '25 years' }
+            ];
+
+            const goalTimeline = document.getElementById('goalTimeline');
+            goalTimeline.innerHTML = goals.map(goal => {
+                const progress = (goal.current / goal.target) * 100;
+                return `
+                    <div class="goal-item">
+                        <div>
+                            <strong>${goal.name}</strong>
+                            <div class="goal-progress">
+                                <div class="goal-progress-bar" style="width: ${progress}%"></div>
+                            </div>
+                            <small>₹${goal.current}L / ₹${goal.target}L (${progress.toFixed(1)}%)</small>
+                        </div>
+                        <div>
+                            <small>${goal.timeline}</small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateRiskAnalysis() {
+            // Risk analysis data
+            const riskData = {
+                overall: 'medium',
+                volatility: 'moderate',
+                concentration: 'low',
+                liquidity: 'high'
+            };
+
+            const riskAnalysis = document.getElementById('riskAnalysis');
+            riskAnalysis.innerHTML = `
+                <div class="risk-item">
+                    <div>Overall Risk</div>
+                    <div class="risk-level risk-${riskData.overall}">${riskData.overall.toUpperCase()}</div>
+                </div>
+                <div class="risk-item">
+                    <div>Volatility</div>
+                    <div class="risk-level risk-${riskData.volatility}">${riskData.volatility.toUpperCase()}</div>
+                </div>
+                <div class="risk-item">
+                    <div>Concentration</div>
+                    <div class="risk-level risk-${riskData.concentration}">${riskData.concentration.toUpperCase()}</div>
+                </div>
+                <div class="risk-item">
+                    <div>Liquidity</div>
+                    <div class="risk-level risk-${riskData.liquidity}">${riskData.liquidity.toUpperCase()}</div>
+                </div>
+            `;
+
+            // Risk chart
+            const ctx = document.getElementById('riskChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Risk Tolerance', 'Diversification', 'Liquidity', 'Volatility', 'Concentration'],
+                    datasets: [{
+                        label: 'Current Portfolio',
+                        data: [7, 8, 9, 6, 7],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        pointBackgroundColor: '#3498db'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 10
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRecommendations() {
+            const recommendations = [
+                "Consider increasing your emergency fund to 6 months of expenses",
+                "Rebalance your portfolio - equity allocation is slightly high",
+                "Start SIP in ELSS funds for tax benefits",
+                "Consider international funds for better diversification",
+                "Review your insurance coverage - ensure adequate life and health insurance"
+            ];
+
+            const recommendationsDiv = document.getElementById('recommendations');
+            recommendationsDiv.innerHTML = recommendations.map(rec => 
+                `<div style="padding: 10px; background: #f8f9fa; border-radius: 8px; margin: 10px 0; border-left: 4px solid #3498db;">
+                    💡 ${rec}
+                </div>`
+            ).join('');
+        }
+
+        function refreshRecommendations() {
+            // Simulate API call
+            setTimeout(() => {
+                updateRecommendations();
+                alert('Recommendations refreshed!');
+            }, 1000);
+        }
+
+        function exportReport() {
+            // Simulate report export
+            const reportData = {
+                userData,
+                timestamp: new Date().toISOString(),
+                portfolioValue: userData.savings * 12,
+                recommendations: document.getElementById('recommendations').innerText
+            };
+            
+            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'financial-report.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
