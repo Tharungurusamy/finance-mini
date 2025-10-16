@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Financial Planning Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .results h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .prediction-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .prediction-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #27ae60;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .insights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .insight-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .insight-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .success {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        /* Chatbot Styles */
+        .chatbot-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .chatbot-header h3 {
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .chatbot-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .chat-messages {
+            height: 350px;
+            overflow-y: auto;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            padding: 15px;
+            background: #fafafa;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            width: 100%;
+        }
+        
+        .chat-message {
+            margin-bottom: 15px;
+        }
+        
+        .bot-message .message-content {
+            background: #e3f2fd;
+            padding: 10px 15px;
+            border-radius: 15px 15px 15px 5px;
+            display: inline-block;
+            max-width: 80%;
+        }
+        
+        .user-message .message-content {
+            background: #4caf50;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 15px 15px 5px 15px;
+            display: inline-block;
+            max-width: 80%;
+            float: right;
+        }
+        
+        .question-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .question-chip {
+            background: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .question-chip:hover {
+            background: #2980b9;
+        }
+        
+        .personalized-advice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .personalized-advice h5 {
+            color: #856404;
+            margin: 0 0 8px 0;
+        }
+        
+        .personalized-advice ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Financial Planning Assistant</h1>
+            <p>Get personalized investment recommendations powered by machine learning</p>
+        </div>
+        
+        <div class="content">
+            <div class="form-section">
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">Your Financial Information</h2>
+                <form id="financialForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="income">Annual Income (₹ Lakhs)</label>
+                            <input type="number" id="income" name="income" required min="0" step="0.5" placeholder="e.g., 8.5">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="expenses">Annual Expenses (₹ Lakhs)</label>
+                            <input type="number" id="expenses" name="expenses" required min="0" step="0.5" placeholder="e.g., 6.0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="savings">Annual Savings (₹ Lakhs)</label>
+                            <input type="number" id="savings" name="savings" required min="0" step="0.5" placeholder="e.g., 2.0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="goals">Financial Goals (₹ Lakhs)</label>
+                            <input type="number" id="goals" name="goals" required min="0" step="0.5" placeholder="e.g., 50.0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="debt_ratio">Debt Ratio (0-1)</label>
+                            <input type="number" id="debt_ratio" name="debt_ratio" min="0" max="1" step="0.01" value="0.1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="risk_tolerance">Risk Tolerance</label>
+                            <select id="risk_tolerance" name="risk_tolerance">
+                                <option value="low">Low (Conservative)</option>
+                                <option value="medium" selected>Medium (Balanced)</option>
+                                <option value="high">High (Aggressive)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="investment_experience">Investment Experience</label>
+                            <select id="investment_experience" name="investment_experience">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate" selected>Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="submitBtn">
+                        Get AI Recommendations
+                    </button>
+                </form>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your financial data and generating recommendations...</p>
+            </div>
+            
+            <div class="error" id="error"></div>
+            <div class="success" id="success"></div>
+            
+            <div class="results" id="results">
+                <h3>Your Personalized Financial Plan</h3>
+                
+                <div class="prediction-card">
+                    <h4 style="text-align: center; color: #2c3e50;">Recommended Annual Investment</h4>
+                    <div class="prediction-value" id="recommendedPlan">₹0L</div>
+                    <p style="text-align: center; color: #7f8c8d;">
+                        Confidence: <span id="confidence">0%</span>
+                    </p>
+                </div>
+                
+                <div class="insights" id="insights">
+                    <!-- Insights will be populated by JavaScript -->
+                </div>
+            </div>
+            
+        <!-- AI Chatbot Section -->
+        <div class="chatbot-section" id="chatbotSection" style="display: none;">
+            <div class="chatbot-header">
+                <h3>🤖 Ask AI Financial Assistant</h3>
+                <p style="color: #7f8c8d; margin-bottom: 20px;">
+                    Have doubts about your financial plan? Ask me anything about investments, savings, or financial planning!
+                </p>
+            </div>
+            
+            <div class="chatbot-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message bot-message">
+                        <div class="message-content">
+                            <strong>AI Assistant:</strong> Hello! I'm your AI Financial Assistant. How can I help you with your financial planning today?
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <div class="input-group">
+                        <input type="text" id="chatInput" placeholder="Ask me anything about your financial plan..." 
+                               style="flex: 1; padding: 12px; border: 2px solid #e1e8ed; border-radius: 8px 0 0 8px; font-size: 16px; border-right: none;">
+                        <button id="sendMessage" class="btn" style="border-radius: 0 8px 8px 0; padding: 12px 20px;">
+                            Send
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="suggested-questions" id="suggestedQuestions">
+                    <p style="font-size: 14px; color: #7f8c8d; margin: 10px 0;">Suggested questions:</p>
+                    <div class="question-chips">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('financialForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            error.style.display = 'none';
+            success.style.display = 'none';
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResults(result);
+                    success.style.display = 'block';
+                    success.textContent = 'Recommendations generated successfully!';
+                } else {
+                    throw new Error(result.error || 'Unknown error occurred');
+                }
+                
+            } catch (err) {
+                error.style.display = 'block';
+                error.textContent = 'Error: ' + err.message;
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+        
+        function displayResults(result) {
+            const { prediction, insights } = result;
+            
+            // Display main prediction
+            document.getElementById('recommendedPlan').textContent = 
+                '₹' + prediction.recommended_plan.toLocaleString('en-IN', {maximumFractionDigits: 1}) + 'L';
+            document.getElementById('confidence').textContent = 
+                (prediction.confidence * 100).toFixed(1) + '%';
+            
+            // Display insights
+            const insightsContainer = document.getElementById('insights');
+            insightsContainer.innerHTML = '';
+            
+            // Financial ratios
+            const ratioCard = createInsightCard(
+                'Financial Health',
+                `Savings Rate: ${insights.savings_rate}%<br>
+                 Expense Ratio: ${insights.expense_ratio}%<br>
+                 Goal Timeline: ${insights.goal_achievement_time_years} years`
+            );
+            insightsContainer.appendChild(ratioCard);
+            
+            // Recommendations
+            const recCard = createInsightCard(
+                'Recommendations',
+                insights.recommendations.map(rec => `• ${rec}`).join('<br>')
+            );
+            insightsContainer.appendChild(recCard);
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+            
+            // Add chat button
+            addChatButton();
+            
+            // Add dashboard button
+            addDashboardButton();
+            
+            // Show chatbot
+            showChatbot();
+        }
+        
+        function createInsightCard(title, content) {
+            const card = document.createElement('div');
+            card.className = 'insight-card';
+            card.innerHTML = `
+                <h4>${title}</h4>
+                <div>${content}</div>
+            `;
+            return card;
+        }
+        
+        // Chatbot functionality
+        let currentUserData = {};
+        
+        document.getElementById('sendMessage').addEventListener('click', sendMessage);
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            console.log('Sending message:', question);
+            
+            // Add user message to chat
+            addMessageToChat(question, 'user');
+            input.value = '';
+            
+            // Show loading
+            const loadingId = addMessageToChat('Thinking...', 'bot');
+            
+            try {
+                // Get current user data from form (if available)
+                let formData = {};
+                const form = document.getElementById('financialForm');
+                if (form) {
+                    try {
+                        formData = new FormData(form);
+                        currentUserData = {};
+                        for (let [key, value] of formData.entries()) {
+                            // Convert string values to appropriate types
+                            if (key === 'income' || key === 'expenses' || key === 'savings' || key === 'goals' || key === 'debt_ratio') {
+                                currentUserData[key] = parseFloat(value) || 0;
+                            } else {
+                                currentUserData[key] = value;
+                            }
+                        }
+                        console.log('Form data collected:', currentUserData);
+                    } catch (formError) {
+                        console.log('No form data available, using empty user data');
+                        currentUserData = {};
+                    }
+                } else {
+                    console.log('Form not found, using empty user data');
+                    currentUserData = {};
+                }
+                
+                // Ensure we have valid data
+                if (!currentUserData || typeof currentUserData !== 'object') {
+                    currentUserData = {};
+                }
+                
+                // Send to API
+                const requestData = {
+                    question: question,
+                    user_data: currentUserData
+                };
+                console.log('Sending request data:', requestData);
+                console.log('Request data JSON:', JSON.stringify(requestData));
+                
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                // Remove loading message
+                if (document.getElementById(loadingId)) {
+                    document.getElementById(loadingId).remove();
+                }
+                
+                if (result.success && result.response) {
+                    const response = result.response;
+                    addMessageToChat(response.message, 'bot');
+                    
+                    // Add personalized advice if available
+                    if (response.personalized_advice && response.personalized_advice.length > 0) {
+                        addPersonalizedAdvice(response.personalized_advice);
+                    }
+                    
+                    // Update suggested questions
+                    if (response.suggestions) {
+                        updateSuggestedQuestions(response.suggestions);
+                    }
+                } else {
+                    console.error('API Error:', result);
+                    const errorMsg = result.error || 'Unknown error occurred';
+                    addMessageToChat(`Sorry, I encountered an error: ${errorMsg}. Please try again.`, 'bot');
+                }
+                
+            } catch (error) {
+                console.error('Chat error:', error);
+                if (document.getElementById(loadingId)) {
+                    document.getElementById(loadingId).remove();
+                }
+                addMessageToChat(`Sorry, I encountered an error: ${error.message}. Please try again.`, 'bot');
+            }
+        }
+        
+        function addMessageToChat(message, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageId = 'msg_' + Date.now();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}-message`;
+            messageDiv.id = messageId;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (sender === 'user') {
+                contentDiv.innerHTML = `<strong>You:</strong> ${message}`;
+            } else {
+                contentDiv.innerHTML = `<strong>AI Assistant:</strong> ${message}`;
+            }
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageId;
+        }
+        
+        function addPersonalizedAdvice(advice) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            const adviceDiv = document.createElement('div');
+            adviceDiv.className = 'personalized-advice';
+            
+            let adviceHtml = '<h5>💡 Personalized Advice for You:</h5><ul>';
+            advice.forEach(item => {
+                adviceHtml += `<li>${item}</li>`;
+            });
+            adviceHtml += '</ul>';
+            
+            adviceDiv.innerHTML = adviceHtml;
+            chatMessages.appendChild(adviceDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function updateSuggestedQuestions(suggestions) {
+            const chipsContainer = document.querySelector('.question-chips');
+            chipsContainer.innerHTML = '';
+            
+            suggestions.forEach(suggestion => {
+                const chip = document.createElement('span');
+                chip.className = 'question-chip';
+                chip.textContent = suggestion;
+                chip.addEventListener('click', () => {
+                    document.getElementById('chatInput').value = suggestion;
+                    sendMessage();
+                });
+                chipsContainer.appendChild(chip);
+            });
+        }
+        
+        // Load initial suggested questions
+        async function loadSuggestedQuestions() {
+            try {
+                console.log('Loading suggested questions...');
+                const response = await fetch('/api/chat/suggestions');
+                const result = await response.json();
+                console.log('Suggestions response:', result);
+                if (result.success) {
+                    updateSuggestedQuestions(result.suggestions);
+                } else {
+                    console.error('Failed to load suggestions:', result);
+                }
+            } catch (error) {
+                console.error('Failed to load suggested questions:', error);
+            }
+        }
+        
+        // Add chat button to results section
+        function addChatButton() {
+            const resultsDiv = document.getElementById('results');
+            const existingButton = document.getElementById('chatButton');
+            
+            if (!existingButton) {
+                const chatButton = document.createElement('button');
+                chatButton.id = 'chatButton';
+                chatButton.className = 'btn';
+                chatButton.innerHTML = '💬 Chat with AI Assistant';
+                chatButton.style.cssText = 'margin: 20px auto; display: block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2);';
+                
+                chatButton.addEventListener('click', function() {
+                    document.getElementById('chatbotSection').scrollIntoView({ behavior: 'smooth' });
+                });
+                
+                resultsDiv.appendChild(chatButton);
+            }
+        }
+        
+        // Add dashboard button to results section
+        function addDashboardButton() {
+            const resultsDiv = document.getElementById('results');
+            const existingButton = document.getElementById('dashboardButton');
+            
+            if (!existingButton) {
+                const dashboardButton = document.createElement('button');
+                dashboardButton.id = 'dashboardButton';
+                dashboardButton.className = 'btn';
+                dashboardButton.innerHTML = '📊 View Comprehensive Dashboard';
+                dashboardButton.style.cssText = 'margin: 10px auto; display: block; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2);';
+                
+                dashboardButton.addEventListener('click', function() {
+                    window.open('/dashboard', '_blank');
+                });
+                
+                resultsDiv.appendChild(dashboardButton);
+            }
+        }
+        
+        // Show chatbot when results are displayed
+        function showChatbot() {
+            try {
+                console.log('Showing chatbot...');
+                const chatbotSection = document.getElementById('chatbotSection');
+                if (chatbotSection) {
+                    chatbotSection.style.display = 'block';
+                    loadSuggestedQuestions();
+                } else {
+                    console.error('Chatbot section not found');
+                }
+            } catch (error) {
+                console.error('Error showing chatbot:', error);
+            }
+        }
+        
+        // Add some sample data for testing
+        document.addEventListener('DOMContentLoaded', function() {
+            // You can uncomment these lines to pre-fill the form with sample data
+            /*
+            document.getElementById('income').value = '8.5';
+            document.getElementById('expenses').value = '6.0';
+            document.getElementById('savings').value = '2.0';
+            document.getElementById('goals').value = '50.0';
+            */
+        });
+    </script>
+</body>
+</html>
